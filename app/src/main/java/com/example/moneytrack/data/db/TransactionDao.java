@@ -1,0 +1,21 @@
+package com.example.moneytrack.data.db;
+
+import androidx.room.Dao;
+import androidx.room.Insert;
+import androidx.room.Query;
+
+import java.util.List;
+
+@Dao
+public interface TransactionDao {
+
+    @Insert
+    void insert(TransactionEntity transaction);
+
+    @Query("SELECT * FROM transactions ORDER BY date DESC")
+    List<TransactionEntity> getAllTransactions();
+
+    @Query("DELETE FROM transactions")
+    void deleteAll();
+}
+
