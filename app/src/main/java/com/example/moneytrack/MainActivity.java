@@ -1,38 +1,40 @@
 package com.example.moneytrack;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.app.AlertDialog;
 import android.text.InputType;
 import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.moneytrack.data.db.AppDatabase;
+import com.example.moneytrack.data.db.TransactionDao;
 import com.example.moneytrack.data.db.TransactionEntity;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.List;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
+import android.widget.AdapterView;
+import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
+    private Button btnHistory;
     private AppDatabase database;
     private TransactionDao transactionDao;
 
     private TextView tvBalance;
     private Button btnIncome, btnExpense, logoutButton;
 
-    private SharedPreferences sharedPreferences;
-    private double balance;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 🔹 Initialize Views
         tvBalance = findViewById(R.id.tvBalance);
         btnIncome = findViewById(R.id.btnIncome);
         btnExpense = findViewById(R.id.btnExpense);
@@ -41,17 +43,17 @@ public class MainActivity extends AppCompatActivity {
         database = AppDatabase.getInstance(this);
         transactionDao = database.transactionDao();
 
-        // 🔹 SharedPreferences
-        sharedPreferences = getSharedPreferences("MoneyTrackPrefs", MODE_PRIVATE);
-        balance = sharedPreferences.getFloat("balance", 0);
+        btnHistory = findViewById(R.id.btnHistory);
 
-        updateBalance();
+        btnHistory.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, HistoryActivity.class))
+        );
+
+        calculateAndUpdateBalance(); // app start-ին հաշվարկ
 
         btnIncome.setOnClickListener(v -> showAmountDialog("income"));
         btnExpense.setOnClickListener(v -> showAmountDialog("expense"));
-        calculateAndUpdateBalance();
 
-        // 🚪 Logout
         logoutButton.setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut();
 
@@ -61,42 +63,78 @@ public class MainActivity extends AppCompatActivity {
             finish();
         });
     }
+
     private void showAmountDialog(String type) {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enter Amount");
+        builder.setTitle("Add Transaction");
 
-        final EditText input = new EditText(this);
-        input.setHint("Enter amount");
-        input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        builder.setView(input);
+        View view = getLayoutInflater().inflate(R.layout.dialog_add_transaction, null);
+        builder.setView(view);
+
+        EditText etAmount = view.findViewById(R.id.etAmount);
+        Spinner spinnerCategory = view.findViewById(R.id.spinnerCategory);
+        EditText etCustomCategory = view.findViewById(R.id.etCustomCategory);
+
+        String[] categories = {"Food", "Transport", "Salary", "Shopping", "Other"};
+
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<>(this,
+                        android.R.layout.simple_spinner_dropdown_item,
+                        categories);
+
+        spinnerCategory.setAdapter(adapter);
+
+        // 👇 Եթե ընտրեն Other → ցույց տանք custom input
+        spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view1, int position, long id) {
+                if (categories[position].equals("Other")) {
+                    etCustomCategory.setVisibility(View.VISIBLE);
+                } else {
+                    etCustomCategory.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
         builder.setPositiveButton("OK", (dialog, which) -> {
 
-            String value = input.getText().toString().trim();
+            String value = etAmount.getText().toString().trim();
 
             if (!value.isEmpty()) {
 
                 double amount = Double.parseDouble(value);
 
+                String selectedCategory;
+
+                if (spinnerCategory.getSelectedItem().toString().equals("Other")) {
+                    selectedCategory = etCustomCategory.getText().toString().trim();
+                    if (selectedCategory.isEmpty()) {
+                        selectedCategory = "Other";
+                    }
+                } else {
+                    selectedCategory = spinnerCategory.getSelectedItem().toString();
+                }
+
+                String finalSelectedCategory = selectedCategory;
                 new Thread(() -> {
 
                     TransactionEntity transaction = new TransactionEntity(
                             amount,
-                            "General",                     // category
-                            type.toUpperCase(),           // INCOME / EXPENSE
-                            System.currentTimeMillis(),   // date
-                            ""                            // note
+                            finalSelectedCategory,
+                            type.toUpperCase(),
+                            System.currentTimeMillis(),
+                            ""
                     );
 
                     transactionDao.insert(transaction);
 
-                    runOnUiThread(() -> calculateAndUpdateBalance());
+                    runOnUiThread(this::calculateAndUpdateBalance);
 
                 }).start();
-
-                saveBalance();
-                updateBalance();
             }
         });
 
@@ -105,20 +143,11 @@ public class MainActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // 💾 Save balance
-    private void saveBalance() {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putFloat("balance", (float) balance);
-        editor.apply();
-    }
-
-
     private void calculateAndUpdateBalance() {
 
         new Thread(() -> {
 
             List<TransactionEntity> list = transactionDao.getAllTransactions();
-
             double total = 0;
 
             for (TransactionEntity t : list) {
@@ -131,15 +160,10 @@ public class MainActivity extends AppCompatActivity {
 
             double finalTotal = total;
 
-            runOnUiThread(() -> {
-                balanceTextView.setText("Balance: " + finalTotal);
-            });
+            runOnUiThread(() ->
+                    tvBalance.setText("Balance: " + finalTotal)
+            );
 
         }).start();
-    }
-
-    // 🔄 Update UI
-    private void updateBalance() {
-        tvBalance.setText("Balance: " + balance);
     }
 }

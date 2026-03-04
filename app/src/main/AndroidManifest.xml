@@ -11,37 +11,31 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MoneyTrack">
-
+        <activity
+            android:name=".HistoryActivity"
+            android:exported="false" />
         <!-- Login launcher -->
         <activity
             android:name=".LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- Register -->
+        </activity> <!-- Register -->
         <activity
             android:name=".RegisterActivity"
-            android:exported="false" />
-
-        <!-- Create PIN -->
+            android:exported="false" /> <!-- Create PIN -->
         <activity
             android:name=".CreatePinActivity"
-            android:exported="false" />
-
-        <!-- Verify PIN -->
+            android:exported="false" /> <!-- Verify PIN -->
         <activity
             android:name=".VerifyPinActivity"
-            android:exported="false" />
-
-        <!-- Main -->
+            android:exported="false" /> <!-- Main -->
         <activity
             android:name=".MainActivity"
             android:exported="false" />
-
     </application>
 
 </manifest>

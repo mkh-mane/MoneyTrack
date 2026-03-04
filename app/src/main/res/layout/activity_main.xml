@@ -35,10 +35,25 @@
         android:layout_marginBottom="16dp"/>
 
     <!-- Logout -->
+
+<!--    <androidx.recyclerview.widget.RecyclerView-->
+<!--        android:id="@+id/recyclerView"-->
+<!--        android:layout_width="369dp"-->
+<!--        android:layout_height="291dp"-->
+<!--        android:layout_weight="1"-->
+<!--        android:padding="8dp" />-->
+
+    <Button
+        android:id="@+id/btnHistory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="View History"/>
+
     <Button
         android:id="@+id/logoutButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Logout" />
+
 
 </LinearLayout>
