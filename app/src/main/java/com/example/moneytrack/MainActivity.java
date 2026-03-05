@@ -2,11 +2,14 @@ package com.example.moneytrack;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.app.AlertDialog;
-import android.text.InputType;
 import android.widget.EditText;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
+import android.widget.AdapterView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -16,13 +19,9 @@ import com.example.moneytrack.data.db.TransactionEntity;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.List;
-import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
-import android.widget.AdapterView;
-import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
+
     private Button btnHistory;
     private AppDatabase database;
     private TransactionDao transactionDao;
@@ -39,17 +38,16 @@ public class MainActivity extends AppCompatActivity {
         btnIncome = findViewById(R.id.btnIncome);
         btnExpense = findViewById(R.id.btnExpense);
         logoutButton = findViewById(R.id.logoutButton);
+        btnHistory = findViewById(R.id.btnHistory);
 
         database = AppDatabase.getInstance(this);
         transactionDao = database.transactionDao();
-
-        btnHistory = findViewById(R.id.btnHistory);
 
         btnHistory.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, HistoryActivity.class))
         );
 
-        calculateAndUpdateBalance(); // app start-ին հաշվարկ
+        calculateAndUpdateBalance();
 
         btnIncome.setOnClickListener(v -> showAmountDialog("income"));
         btnExpense.setOnClickListener(v -> showAmountDialog("expense"));
@@ -85,10 +83,10 @@ public class MainActivity extends AppCompatActivity {
 
         spinnerCategory.setAdapter(adapter);
 
-        // 👇 Եթե ընտրեն Other → ցույց տանք custom input
         spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view1, int position, long id) {
+
                 if (categories[position].equals("Other")) {
                     etCustomCategory.setVisibility(View.VISIBLE);
                 } else {
@@ -111,15 +109,19 @@ public class MainActivity extends AppCompatActivity {
                 String selectedCategory;
 
                 if (spinnerCategory.getSelectedItem().toString().equals("Other")) {
+
                     selectedCategory = etCustomCategory.getText().toString().trim();
+
                     if (selectedCategory.isEmpty()) {
                         selectedCategory = "Other";
                     }
+
                 } else {
                     selectedCategory = spinnerCategory.getSelectedItem().toString();
                 }
 
                 String finalSelectedCategory = selectedCategory;
+
                 new Thread(() -> {
 
                     TransactionEntity transaction = new TransactionEntity(
@@ -148,9 +150,11 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
 
             List<TransactionEntity> list = transactionDao.getAllTransactions();
+
             double total = 0;
 
             for (TransactionEntity t : list) {
+
                 if (t.type.equals("INCOME")) {
                     total += t.amount;
                 } else {

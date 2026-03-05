@@ -1,6 +1,7 @@
 package com.example.moneytrack;
 
 import android.os.Bundle;
+import android.app.AlertDialog;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -10,6 +11,7 @@ import com.example.moneytrack.data.db.AppDatabase;
 import com.example.moneytrack.data.db.TransactionDao;
 import com.example.moneytrack.data.db.TransactionEntity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class HistoryActivity extends AppCompatActivity {
@@ -26,10 +28,31 @@ public class HistoryActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerViewHistory);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        adapter = new TransactionAdapter(new java.util.ArrayList<>());
-        recyclerView.setAdapter(adapter);
-
         transactionDao = AppDatabase.getInstance(this).transactionDao();
+
+        // Adapter with click listener
+        adapter = new TransactionAdapter(new ArrayList<>(), transaction -> {
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Delete Transaction")
+                    .setMessage("Do you want to delete this transaction?")
+                    .setPositiveButton("Delete", (dialog, which) -> {
+
+                        new Thread(() -> {
+
+                            transactionDao.delete(transaction);
+
+                            runOnUiThread(this::loadData);
+
+                        }).start();
+
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+
+        });
+
+        recyclerView.setAdapter(adapter);
 
         loadData();
     }
