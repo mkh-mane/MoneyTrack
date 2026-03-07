@@ -2,15 +2,11 @@ package com.example.moneytrack;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
 import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
-import android.app.AlertDialog;
-import android.widget.EditText;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
-import android.widget.AdapterView;
+import android.widget.*;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.moneytrack.data.db.AppDatabase;
@@ -18,16 +14,16 @@ import com.example.moneytrack.data.db.TransactionDao;
 import com.example.moneytrack.data.db.TransactionEntity;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button btnHistory;
+    private TextView tvBalance;
+    private Button btnIncome, btnExpense, logoutButton, btnHistory, btnVoice;
+
     private AppDatabase database;
     private TransactionDao transactionDao;
-
-    private TextView tvBalance;
-    private Button btnIncome, btnExpense, logoutButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,18 +35,21 @@ public class MainActivity extends AppCompatActivity {
         btnExpense = findViewById(R.id.btnExpense);
         logoutButton = findViewById(R.id.logoutButton);
         btnHistory = findViewById(R.id.btnHistory);
+        btnVoice = findViewById(R.id.btnVoice);
 
         database = AppDatabase.getInstance(this);
         transactionDao = database.transactionDao();
-
-        btnHistory.setOnClickListener(v ->
-                startActivity(new Intent(MainActivity.this, HistoryActivity.class))
-        );
 
         calculateAndUpdateBalance();
 
         btnIncome.setOnClickListener(v -> showAmountDialog("income"));
         btnExpense.setOnClickListener(v -> showAmountDialog("expense"));
+
+        btnHistory.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, HistoryActivity.class))
+        );
+
+        btnVoice.setOnClickListener(v -> startVoiceInput());
 
         logoutButton.setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut();
@@ -76,10 +75,11 @@ public class MainActivity extends AppCompatActivity {
 
         String[] categories = {"Food", "Transport", "Salary", "Shopping", "Other"};
 
-        ArrayAdapter<String> adapter =
-                new ArrayAdapter<>(this,
-                        android.R.layout.simple_spinner_dropdown_item,
-                        categories);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_dropdown_item,
+                categories
+        );
 
         spinnerCategory.setAdapter(adapter);
 
@@ -167,6 +167,92 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() ->
                     tvBalance.setText("Balance: " + finalTotal)
             );
+
+        }).start();
+    }
+
+    private void startVoiceInput() {
+
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+
+        intent.putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+        );
+
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en");
+
+        startActivityForResult(intent, 100);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 100 && resultCode == RESULT_OK) {
+
+            ArrayList<String> result =
+                    data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+
+            if (result != null && !result.isEmpty()) {
+
+                String speechText = result.get(0);
+
+                processVoiceInput(speechText);
+            }
+        }
+    }
+
+    private void processVoiceInput(String text) {
+
+        text = text.toLowerCase();
+
+        double amount = 0;
+
+        for (String word : text.split(" ")) {
+
+            word = word.replace(",", "").replace(".", "");
+
+            try {
+                amount = Double.parseDouble(word);
+                break;
+            } catch (Exception ignored) {}
+        }
+
+        if (amount == 0) return;
+
+        String type = "EXPENSE";
+
+        if (text.contains("income") || text.contains("salary")) {
+            type = "INCOME";
+        }
+
+        String category = "Other";
+
+        if (text.contains("food")) category = "Food";
+        else if (text.contains("transport")) category = "Transport";
+        else if (text.contains("shopping")) category = "Shopping";
+        else if (text.contains("salary")) category = "Salary";
+
+        double finalAmount = amount;
+        String finalCategory = category;
+        String finalType = type;
+
+        new Thread(() -> {
+
+            TransactionEntity transaction = new TransactionEntity(
+                    finalAmount,
+                    finalCategory,
+                    finalType,
+                    System.currentTimeMillis(),
+                    ""
+            );
+
+            transactionDao.insert(transaction);
+
+            runOnUiThread(this::calculateAndUpdateBalance);
 
         }).start();
     }
