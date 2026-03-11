@@ -13,6 +13,7 @@ import com.example.moneytrack.data.db.AppDatabase;
 import com.example.moneytrack.data.db.TransactionDao;
 import com.example.moneytrack.data.db.TransactionEntity;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
         tvBalance = findViewById(R.id.tvBalance);
         btnIncome = findViewById(R.id.btnIncome);
         btnExpense = findViewById(R.id.btnExpense);
-        logoutButton = findViewById(R.id.logoutButton);
+//        logoutButton = findViewById(R.id.logoutButton);
         btnHistory = findViewById(R.id.btnHistory);
         btnVoice = findViewById(R.id.btnVoice);
 
@@ -59,6 +60,35 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+
+//        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+//
+//        bottomNav.setOnItemSelectedListener(item -> {
+//
+//            if (item.getItemId() == R.id.nav_home) {
+//                return true;
+//            }
+//
+//            if (item.getItemId() == R.id.nav_history) {
+//
+//                startActivity(new Intent(MainActivity.this, HistoryActivity.class));
+//                return true;
+//            }
+//
+//            if (item.getItemId() == R.id.nav_analyze) {
+//
+//                startActivity(new Intent(MainActivity.this, AnalyzeActivity.class));
+//                return true;
+//            }
+//
+//            if (item.getItemId() == R.id.nav_profile) {
+//
+//                startActivity(new Intent(MainActivity.this, ProfileActivity.class));
+//                return true;
+//            }
+//
+//            return false;
+//        });
     }
 
     private void showAmountDialog(String type) {
@@ -211,6 +241,7 @@ public class MainActivity extends AppCompatActivity {
 
         double amount = 0;
 
+        // amount գտնել
         for (String word : text.split(" ")) {
 
             word = word.replace(",", "").replace(".", "");
@@ -229,12 +260,31 @@ public class MainActivity extends AppCompatActivity {
             type = "INCOME";
         }
 
+
         String category = "Other";
 
-        if (text.contains("food")) category = "Food";
-        else if (text.contains("transport")) category = "Transport";
-        else if (text.contains("shopping")) category = "Shopping";
-        else if (text.contains("salary")) category = "Salary";
+        for (String word : text.split(" ")) {
+
+            word = word.replaceAll("[^a-z]", "");
+
+            if (!word.isEmpty()
+                    && !word.equals("spent")
+                    && !word.equals("on")
+                    && !word.equals("for")
+                    && !word.equals("the")
+                    && !word.equals("a")
+                    && !word.equals("i")
+                    && !word.equals("income")
+                    && !word.equals("expense")
+                    && !word.equals("salary")) {
+
+                category = word;
+                break;
+            }
+        }
+
+        // 1ին տառը մեծատառ
+        category = category.substring(0,1).toUpperCase() + category.substring(1);
 
         double finalAmount = amount;
         String finalCategory = category;

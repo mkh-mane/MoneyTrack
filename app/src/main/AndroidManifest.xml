@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
         android:allowBackup="true"
@@ -12,10 +13,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MoneyTrack">
+<!--        <activity-->
+<!--            android:name=".ProfileActivity"-->
+<!--            android:exported="false" />-->
+<!--        <activity-->
+<!--            android:name=".AnalyzeActivity"-->
+<!--            android:exported="false" />-->
         <activity
             android:name=".HistoryActivity"
-            android:exported="false" />
-        <!-- Login launcher -->
+            android:exported="false" /> <!-- Login launcher -->
         <activity
             android:name=".LoginActivity"
             android:exported="true">
