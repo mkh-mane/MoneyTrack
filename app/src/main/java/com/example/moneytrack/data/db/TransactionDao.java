@@ -21,4 +21,10 @@ public interface TransactionDao {
 
     @Query("DELETE FROM transactions")
     void deleteAll();
+
+    @Query("SELECT SUM(amount) FROM transactions WHERE type = 'INCOME'")
+    Double getTotalIncome();
+
+    @Query("SELECT SUM(amount) FROM transactions WHERE type = 'EXPENSE'")
+    Double getTotalExpense();
 }

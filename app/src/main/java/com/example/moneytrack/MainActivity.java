@@ -21,7 +21,9 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private TextView tvBalance;
-    private Button btnIncome, btnExpense, logoutButton, btnHistory, btnVoice;
+    private Button btnIncome, btnExpense,
+//            logoutButton,
+            btnHistory, btnVoice;
 
     private AppDatabase database;
     private TransactionDao transactionDao;
@@ -52,43 +54,43 @@ public class MainActivity extends AppCompatActivity {
 
         btnVoice.setOnClickListener(v -> startVoiceInput());
 
-        logoutButton.setOnClickListener(v -> {
-            FirebaseAuth.getInstance().signOut();
-
-            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-        });
-
-//        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+//        logoutButton.setOnClickListener(v -> {
+//            FirebaseAuth.getInstance().signOut();
 //
-//        bottomNav.setOnItemSelectedListener(item -> {
-//
-//            if (item.getItemId() == R.id.nav_home) {
-//                return true;
-//            }
-//
-//            if (item.getItemId() == R.id.nav_history) {
-//
-//                startActivity(new Intent(MainActivity.this, HistoryActivity.class));
-//                return true;
-//            }
-//
-//            if (item.getItemId() == R.id.nav_analyze) {
-//
-//                startActivity(new Intent(MainActivity.this, AnalyzeActivity.class));
-//                return true;
-//            }
-//
-//            if (item.getItemId() == R.id.nav_profile) {
-//
-//                startActivity(new Intent(MainActivity.this, ProfileActivity.class));
-//                return true;
-//            }
-//
-//            return false;
+//            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+//            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//            startActivity(intent);
+//            finish();
 //        });
+
+        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+
+        bottomNav.setOnItemSelectedListener(item -> {
+
+            if (item.getItemId() == R.id.nav_home) {
+                return true;
+            }
+
+            if (item.getItemId() == R.id.nav_history) {
+
+                startActivity(new Intent(MainActivity.this, HistoryActivity.class));
+                return true;
+            }
+
+            if (item.getItemId() == R.id.nav_analyze) {
+
+                startActivity(new Intent(MainActivity.this, AnalyzeActivity.class));
+                return true;
+            }
+
+            if (item.getItemId() == R.id.nav_profile) {
+
+                startActivity(new Intent(MainActivity.this, ProfileActivity.class));
+                return true;
+            }
+
+            return false;
+        });
     }
 
     private void showAmountDialog(String type) {

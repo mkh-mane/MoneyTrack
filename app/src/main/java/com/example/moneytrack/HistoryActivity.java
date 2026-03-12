@@ -1,5 +1,6 @@
 package com.example.moneytrack;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.app.AlertDialog;
 
@@ -10,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.moneytrack.data.db.AppDatabase;
 import com.example.moneytrack.data.db.TransactionDao;
 import com.example.moneytrack.data.db.TransactionEntity;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +57,35 @@ public class HistoryActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         loadData();
+
+
+        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+
+        bottomNav.setSelectedItemId(R.id.nav_history);
+
+        bottomNav.setOnItemSelectedListener(item -> {
+
+            if (item.getItemId() == R.id.nav_home) {
+                startActivity(new Intent(this, MainActivity.class));
+                return true;
+            }
+
+            if (item.getItemId() == R.id.nav_history) {
+                return true;
+            }
+
+            if (item.getItemId() == R.id.nav_analyze) {
+                startActivity(new Intent(this, AnalyzeActivity.class));
+                return true;
+            }
+
+            if (item.getItemId() == R.id.nav_profile) {
+                startActivity(new Intent(this, ProfileActivity.class));
+                return true;
+            }
+
+            return false;
+        });
     }
 
     private void loadData() {
