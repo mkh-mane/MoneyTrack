@@ -2,6 +2,8 @@ package com.example.moneytrack;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.graphics.Color;
+import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,11 +16,11 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
-import android.graphics.Color;
 
 public class AnalyzeActivity extends AppCompatActivity {
 
     BarChart barChart;
+    TransactionDao transactionDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,43 +29,19 @@ public class AnalyzeActivity extends AppCompatActivity {
 
         barChart = findViewById(R.id.barChart);
 
+        Button btnToday = findViewById(R.id.btnToday);
+        Button btnWeek = findViewById(R.id.btnWeek);
+        Button btnMonth = findViewById(R.id.btnMonth);
+
         AppDatabase db = AppDatabase.getInstance(this);
-        TransactionDao transactionDao = db.transactionDao();
+        transactionDao = db.transactionDao();
 
-        new Thread(() -> {
+        btnToday.setOnClickListener(v -> loadData(1));
+        btnWeek.setOnClickListener(v -> loadData(7));
+        btnMonth.setOnClickListener(v -> loadData(30));
 
-            Double income = transactionDao.getTotalIncome();
-            Double expense = transactionDao.getTotalExpense();
-
-            if (income == null) income = 0.0;
-            if (expense == null) expense = 0.0;
-
-            double finalIncome = income;
-            double finalExpense = expense;
-
-            runOnUiThread(() -> {
-
-                ArrayList<BarEntry> entries = new ArrayList<>();
-
-                entries.add(new BarEntry(1f, (float) finalIncome));
-                entries.add(new BarEntry(2f, (float) finalExpense));
-
-                BarDataSet dataSet = new BarDataSet(entries, "Money Flow");
-
-                ArrayList<Integer> colors = new ArrayList<>();
-                colors.add(Color.GREEN);
-                colors.add(Color.RED);
-
-                dataSet.setColors(colors);
-
-                BarData barData = new BarData(dataSet);
-
-                barChart.setData(barData);
-                barChart.invalidate();
-
-            });
-
-        }).start();
+        // Default graph → Month
+        loadData(30);
 
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
 
@@ -92,5 +70,45 @@ public class AnalyzeActivity extends AppCompatActivity {
 
             return false;
         });
+    }
+
+    private void loadData(int days){
+
+        long now = System.currentTimeMillis();
+        long startTime = now - (days * 24L * 60 * 60 * 1000);
+
+        new Thread(() -> {
+
+            Double income = transactionDao.getIncomeFrom(startTime);
+            Double expense = transactionDao.getExpenseFrom(startTime);
+
+            if(income == null) income = 0.0;
+            if(expense == null) expense = 0.0;
+
+            double finalIncome = income;
+            double finalExpense = expense;
+
+            runOnUiThread(() -> {
+
+                ArrayList<BarEntry> entries = new ArrayList<>();
+
+                entries.add(new BarEntry(1f,(float)finalIncome));
+                entries.add(new BarEntry(2f,(float)finalExpense));
+
+                BarDataSet dataSet = new BarDataSet(entries,"Money Flow");
+
+                ArrayList<Integer> colors = new ArrayList<>();
+                colors.add(Color.GREEN);
+                colors.add(Color.RED);
+                dataSet.setColors(colors);
+
+                BarData barData = new BarData(dataSet);
+
+                barChart.setData(barData);
+                barChart.invalidate();
+
+            });
+
+        }).start();
     }
 }
