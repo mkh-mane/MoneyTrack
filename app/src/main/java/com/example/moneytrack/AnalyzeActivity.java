@@ -7,6 +7,13 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.AlertDialog;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+
+import com.example.moneytrack.data.db.GoalDao;
+import com.example.moneytrack.data.db.GoalEntity;
+
 import com.example.moneytrack.data.db.AppDatabase;
 import com.example.moneytrack.data.db.TransactionDao;
 import com.github.mikephil.charting.charts.BarChart;
@@ -21,6 +28,8 @@ public class AnalyzeActivity extends AppCompatActivity {
 
     BarChart barChart;
     TransactionDao transactionDao;
+    GoalDao goalDao;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +44,7 @@ public class AnalyzeActivity extends AppCompatActivity {
 
         AppDatabase db = AppDatabase.getInstance(this);
         transactionDao = db.transactionDao();
+        goalDao = db.goalDao();
 
         btnToday.setOnClickListener(v -> loadData(1));
         btnWeek.setOnClickListener(v -> loadData(7));
@@ -70,6 +80,43 @@ public class AnalyzeActivity extends AppCompatActivity {
 
             return false;
         });
+
+
+        Button btnAddGoal = findViewById(R.id.btnAddGoal);
+
+        btnAddGoal.setOnClickListener(v -> {
+
+            EditText goalName = new EditText(this);
+            goalName.setHint("Goal name");
+
+            EditText goalAmount = new EditText(this);
+            goalAmount.setHint("Target amount");
+
+            LinearLayout layout = new LinearLayout(this);
+            layout.setOrientation(LinearLayout.VERTICAL);
+            layout.addView(goalName);
+            layout.addView(goalAmount);
+
+            new AlertDialog.Builder(this)
+                    .setTitle("New Goal")
+                    .setView(layout)
+
+                    .setPositiveButton("Save", (dialog, which) -> {
+
+                        String name = goalName.getText().toString();
+                        double amount = Double.parseDouble(goalAmount.getText().toString());
+
+                        new Thread(() -> {
+                            goalDao.insert(new GoalEntity(name, amount));
+                        }).start();
+
+                    })
+
+                    .setNegativeButton("Cancel", null)
+                    .show();
+
+        });
+
     }
 
     private void loadData(int days){

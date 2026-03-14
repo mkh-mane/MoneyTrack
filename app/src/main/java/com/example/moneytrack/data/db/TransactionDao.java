@@ -41,5 +41,4 @@ public interface TransactionDao {
     @Query("SELECT SUM(amount) FROM transactions WHERE type='EXPENSE' AND date >= :startTime")
     Double getExpenseFrom(long startTime);
 
-
 }

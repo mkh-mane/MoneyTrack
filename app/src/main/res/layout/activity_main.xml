@@ -7,15 +7,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Bottom Navigation -->
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
         <LinearLayout
-            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
             <!-- Balance Card -->
 
@@ -27,26 +29,26 @@
                 app:cardElevation="6dp">
 
                 <LinearLayout
-                    android:orientation="vertical"
-                    android:padding="20dp"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
                     <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:text="Balance Overview"
                         android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvBalance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
                         android:text="$0"
                         android:textSize="30sp"
-                        android:textStyle="bold"
-                        android:layout_marginTop="10dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
+                        android:textStyle="bold" />
 
                 </LinearLayout>
 
@@ -55,103 +57,103 @@
             <!-- Quick Add -->
 
             <TextView
-                android:text="Quick Add"
-                android:textStyle="bold"
-                android:textSize="16sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginBottom="10dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:text="Quick Add"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:paddingEnd="16dp">
 
                 <Button
                     android:id="@+id/btnVoice"
                     android:layout_width="0dp"
+                    android:layout_height="60dp"
                     android:layout_weight="1"
-                    android:text="Voice Input"
-                    android:layout_height="60dp"/>
+                    android:text="Voice Input" />
 
                 <Button
                     android:id="@+id/btnIncome"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:text="Income"
+                    android:layout_height="60dp"
                     android:layout_marginStart="10dp"
-                    android:layout_height="60dp"/>
+                    android:layout_weight="1"
+                    android:text="Income" />
 
             </LinearLayout>
 
             <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
                 android:orientation="horizontal"
                 android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:layout_marginTop="10dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:paddingEnd="16dp">
 
                 <Button
                     android:id="@+id/btnExpense"
                     android:layout_width="0dp"
+                    android:layout_height="60dp"
                     android:layout_weight="1"
-                    android:text="Expense"
-                    android:layout_height="60dp"/>
+                    android:text="Expense" />
 
                 <Button
                     android:id="@+id/btnHistory"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:text="History"
+                    android:layout_height="60dp"
                     android:layout_marginStart="10dp"
-                    android:layout_height="60dp"/>
+                    android:layout_weight="1"
+                    android:text="History" />
 
             </LinearLayout>
 
             <!-- Income / Expense Cards -->
 
             <LinearLayout
-                android:orientation="horizontal"
-                android:padding="16dp"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp">
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
-                    android:layout_weight="1"
                     android:layout_height="80dp"
+                    android:layout_weight="1"
                     app:cardCornerRadius="16dp">
 
                     <TextView
                         android:id="@+id/tvIncome"
-                        android:text="Income"
-                        android:gravity="center"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"/>
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="Income"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
 
                 </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_marginStart="10dp"
                     android:layout_height="80dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
                     app:cardCornerRadius="16dp">
 
                     <TextView
                         android:id="@+id/tvExpenseCard"
-                        android:text="Expense"
-                        android:gravity="center"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"/>
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="Expense"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
 
                 </com.google.android.material.card.MaterialCardView>
 
@@ -160,8 +162,6 @@
         </LinearLayout>
 
     </ScrollView>
-
-    <!-- Bottom Navigation -->
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"
