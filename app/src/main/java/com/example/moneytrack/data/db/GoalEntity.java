@@ -11,10 +11,13 @@ public class GoalEntity {
 
     public String name;
     public double targetAmount;
+    public double savedAmount;
 
     public GoalEntity(String name, double targetAmount) {
         this.name = name;
         this.targetAmount = targetAmount;
+        this.savedAmount = 0;
     }
 }
+
 

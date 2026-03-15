@@ -14,4 +14,7 @@ public interface GoalDao {
 
     @Query("SELECT * FROM goals")
     List<GoalEntity> getAllGoals();
+    @Query("UPDATE goals SET savedAmount = savedAmount + :amount WHERE id = :goalId")
+    void addMoney(int goalId, double amount);
+
 }

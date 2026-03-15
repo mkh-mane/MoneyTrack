@@ -1,28 +1,30 @@
 package com.example.moneytrack;
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.graphics.Color;
-import android.widget.Button;
-
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.AlertDialog;
+import android.content.Intent;
+import android.graphics.Color;
+import android.os.Bundle;
+import android.text.InputType;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
-import com.example.moneytrack.data.db.GoalDao;
-import com.example.moneytrack.data.db.GoalEntity;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.moneytrack.data.db.AppDatabase;
+import com.example.moneytrack.data.db.GoalDao;
+import com.example.moneytrack.data.db.GoalEntity;
 import com.example.moneytrack.data.db.TransactionDao;
 import com.github.mikephil.charting.charts.BarChart;
-import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class AnalyzeActivity extends AppCompatActivity {
 
@@ -30,6 +32,8 @@ public class AnalyzeActivity extends AppCompatActivity {
     TransactionDao transactionDao;
     GoalDao goalDao;
 
+    RecyclerView goalsRecycler;
+    GoalAdapter goalAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +54,6 @@ public class AnalyzeActivity extends AppCompatActivity {
         btnWeek.setOnClickListener(v -> loadData(7));
         btnMonth.setOnClickListener(v -> loadData(30));
 
-        // Default graph → Month
         loadData(30);
 
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
@@ -81,56 +84,105 @@ public class AnalyzeActivity extends AppCompatActivity {
             return false;
         });
 
+        goalsRecycler = findViewById(R.id.goalsRecycler);
+        goalsRecycler.setLayoutManager(new LinearLayoutManager(this));
+
+        goalAdapter = new GoalAdapter(new ArrayList<>(), goal -> {
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Add money to " + goal.name);
+
+            EditText input = new EditText(this);
+            input.setHint("Amount");
+            input.setInputType(InputType.TYPE_CLASS_NUMBER);
+
+            builder.setView(input);
+
+            builder.setPositiveButton("Add", (dialog, which) -> {
+
+                String text = input.getText().toString();
+
+                if (text.isEmpty()) return;
+
+                double amount = Double.parseDouble(text);
+
+                new Thread(() -> {
+
+                    goalDao.addMoney(goal.id, amount);
+
+                    runOnUiThread(() -> loadGoals());
+
+                }).start();
+
+            });
+
+
+            builder.setNegativeButton("Cancel", null);
+            builder.show();
+
+        });
+
+        goalsRecycler.setAdapter(goalAdapter);
+
 
         Button btnAddGoal = findViewById(R.id.btnAddGoal);
 
         btnAddGoal.setOnClickListener(v -> {
 
-            EditText goalName = new EditText(this);
-            goalName.setHint("Goal name");
-
-            EditText goalAmount = new EditText(this);
-            goalAmount.setHint("Target amount");
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Add New Goal");
 
             LinearLayout layout = new LinearLayout(this);
             layout.setOrientation(LinearLayout.VERTICAL);
-            layout.addView(goalName);
-            layout.addView(goalAmount);
 
-            new AlertDialog.Builder(this)
-                    .setTitle("New Goal")
-                    .setView(layout)
+            EditText nameInput = new EditText(this);
+            nameInput.setHint("Goal name");
 
-                    .setPositiveButton("Save", (dialog, which) -> {
+            EditText amountInput = new EditText(this);
+            amountInput.setHint("Target amount");
+            amountInput.setInputType(InputType.TYPE_CLASS_NUMBER);
 
-                        String name = goalName.getText().toString();
-                        double amount = Double.parseDouble(goalAmount.getText().toString());
+            layout.addView(nameInput);
+            layout.addView(amountInput);
 
-                        new Thread(() -> {
-                            goalDao.insert(new GoalEntity(name, amount));
-                        }).start();
+            builder.setView(layout);
 
-                    })
+            builder.setPositiveButton("Add", (dialog, which) -> {
 
-                    .setNegativeButton("Cancel", null)
-                    .show();
+                String name = nameInput.getText().toString();
+                double amount = Double.parseDouble(amountInput.getText().toString());
+
+                new Thread(() -> {
+
+                    GoalEntity goal = new GoalEntity(name, amount);
+                    goalDao.insert(goal);
+
+                    runOnUiThread(this::loadGoals);
+
+                }).start();
+
+            });
+
+            builder.setNegativeButton("Cancel", null);
+            builder.show();
 
         });
 
+        loadGoals();
     }
 
-    private void loadData(int days){
+    private void loadData(int days) {
 
         long now = System.currentTimeMillis();
         long startTime = now - (days * 24L * 60 * 60 * 1000);
 
         new Thread(() -> {
 
-            Double income = transactionDao.getIncomeFrom(startTime);
-            Double expense = transactionDao.getExpenseFrom(startTime);
+            Double income = transactionDao.getIncomeLast30Days(startTime);
+            Double expense = transactionDao.getExpenseLast30Days(startTime);
 
-            if(income == null) income = 0.0;
-            if(expense == null) expense = 0.0;
+            if (income == null) income = 0.0;
+            if (expense == null) expense = 0.0;
 
             double finalIncome = income;
             double finalExpense = expense;
@@ -139,14 +191,15 @@ public class AnalyzeActivity extends AppCompatActivity {
 
                 ArrayList<BarEntry> entries = new ArrayList<>();
 
-                entries.add(new BarEntry(1f,(float)finalIncome));
-                entries.add(new BarEntry(2f,(float)finalExpense));
+                entries.add(new BarEntry(1f, (float) finalIncome));
+                entries.add(new BarEntry(2f, (float) finalExpense));
 
-                BarDataSet dataSet = new BarDataSet(entries,"Money Flow");
+                BarDataSet dataSet = new BarDataSet(entries, "Money Flow");
 
                 ArrayList<Integer> colors = new ArrayList<>();
                 colors.add(Color.GREEN);
                 colors.add(Color.RED);
+
                 dataSet.setColors(colors);
 
                 BarData barData = new BarData(dataSet);
@@ -155,6 +208,17 @@ public class AnalyzeActivity extends AppCompatActivity {
                 barChart.invalidate();
 
             });
+
+        }).start();
+    }
+
+    private void loadGoals() {
+
+        new Thread(() -> {
+
+            List<GoalEntity> goals = goalDao.getAllGoals();
+
+            runOnUiThread(() -> goalAdapter.setGoals(goals));
 
         }).start();
     }
