@@ -17,4 +17,6 @@ public interface GoalDao {
     @Query("UPDATE goals SET savedAmount = savedAmount + :amount WHERE id = :goalId")
     void addMoney(int goalId, double amount);
 
+    @Query("DELETE FROM goals WHERE id = :goalId")
+    void deleteGoal(int goalId);
 }

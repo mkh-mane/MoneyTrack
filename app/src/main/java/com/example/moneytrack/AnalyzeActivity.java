@@ -12,6 +12,8 @@ import android.widget.LinearLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.moneytrack.data.db.AppDatabase;
 import com.example.moneytrack.data.db.GoalDao;
@@ -89,6 +91,17 @@ public class AnalyzeActivity extends AppCompatActivity {
 
         goalAdapter = new GoalAdapter(new ArrayList<>(), goal -> {
 
+            if (goal.savedAmount >= goal.targetAmount) {
+
+                new AlertDialog.Builder(this)
+                        .setTitle("Goal Completed")
+                        .setMessage("You already reached this goal 🎉")
+                        .setPositiveButton("OK", null)
+                        .show();
+
+                return;
+            }
+
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Add money to " + goal.name);
 
@@ -123,7 +136,48 @@ public class AnalyzeActivity extends AppCompatActivity {
         });
 
         goalsRecycler.setAdapter(goalAdapter);
+        ItemTouchHelper.SimpleCallback swipeCallback =
+                new ItemTouchHelper.SimpleCallback(0,
+                        ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
 
+                    @Override
+                    public boolean onMove(RecyclerView recyclerView,
+                                          RecyclerView.ViewHolder viewHolder,
+                                          RecyclerView.ViewHolder target) {
+                        return false;
+                    }
+
+                    @Override
+                    public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+
+                        int position = viewHolder.getAdapterPosition();
+                        GoalEntity goal = goalAdapter.getGoalAt(position);
+
+                        new AlertDialog.Builder(AnalyzeActivity.this)
+                                .setTitle("Delete Goal")
+                                .setMessage("Are you sure you want to delete \"" + goal.name + "\"?")
+                                .setPositiveButton("Delete", (dialog, which) -> {
+
+                                    new Thread(() -> {
+
+                                        goalDao.deleteGoal(goal.id);
+
+                                        runOnUiThread(() -> loadGoals());
+
+                                    }).start();
+
+                                })
+                                .setNegativeButton("Cancel", (dialog, which) -> {
+
+                                    goalAdapter.notifyItemChanged(position);
+
+                                })
+                                .show();
+                    }
+                };
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(swipeCallback);
+        itemTouchHelper.attachToRecyclerView(goalsRecycler);
 
         Button btnAddGoal = findViewById(R.id.btnAddGoal);
 

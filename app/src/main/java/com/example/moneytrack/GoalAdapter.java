@@ -87,4 +87,8 @@ public class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.GoalViewHolder
             goalProgress = itemView.findViewById(R.id.goalProgress);
         }
     }
+    public GoalEntity getGoalAt(int position) {
+        return goals.get(position);
+    }
+
 }
