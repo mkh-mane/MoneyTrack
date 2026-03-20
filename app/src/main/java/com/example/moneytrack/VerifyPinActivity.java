@@ -7,11 +7,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -34,6 +30,9 @@ public class VerifyPinActivity extends AppCompatActivity {
             String enteredPin = pinEditText.getText().toString();
 
             if (enteredPin.equals(savedPin)) {
+
+                prefs.edit().putBoolean("PIN_VERIFIED", true).apply();
+
                 startActivity(new Intent(this, MainActivity.class));
                 finish();
             } else {
@@ -45,11 +44,12 @@ public class VerifyPinActivity extends AppCompatActivity {
 
             FirebaseAuth.getInstance().signOut();
 
-            prefs.edit().remove("user_pin").apply();
+            prefs.edit().clear().apply();
 
-            Intent intent = new Intent(this, LoginActivity.class);
+            Intent intent = new Intent(this, RegisterActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
+            finish();
         });
     }
 }

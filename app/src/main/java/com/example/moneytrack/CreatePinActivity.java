@@ -1,16 +1,13 @@
 package com.example.moneytrack;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 public class CreatePinActivity extends AppCompatActivity {
 
@@ -31,11 +28,12 @@ public class CreatePinActivity extends AppCompatActivity {
                 return;
             }
 
-            getSharedPreferences("MoneyTrackPrefs", MODE_PRIVATE)
-                    .edit()
-                    .putString("user_pin", pin)
-                    .apply();
+            SharedPreferences prefs = getSharedPreferences("MoneyTrackPrefs", MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putString("user_pin", pin);
+            editor.putBoolean("PIN_VERIFIED", true);
 
+            editor.apply();
             startActivity(new Intent(this, MainActivity.class));
             finish();
         });

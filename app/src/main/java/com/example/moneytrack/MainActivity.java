@@ -1,6 +1,7 @@
 package com.example.moneytrack;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.view.View;
@@ -12,7 +13,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.moneytrack.data.db.AppDatabase;
 import com.example.moneytrack.data.db.TransactionDao;
 import com.example.moneytrack.data.db.TransactionEntity;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
@@ -21,9 +21,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private TextView tvBalance;
-    private Button btnIncome, btnExpense,
-//            logoutButton,
-            btnHistory, btnVoice;
+    private Button btnIncome, btnExpense, btnHistory, btnVoice;
 
     private AppDatabase database;
     private TransactionDao transactionDao;
@@ -31,12 +29,22 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SharedPreferences prefs = getSharedPreferences("MoneyTrackPrefs", MODE_PRIVATE);
+        boolean remember = prefs.getBoolean("REMEMBER", false);
+        boolean pinVerified = prefs.getBoolean("PIN_VERIFIED", false);
+
+        if (remember && !pinVerified) {
+            startActivity(new Intent(this, VerifyPinActivity.class));
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_main);
 
         tvBalance = findViewById(R.id.tvBalance);
         btnIncome = findViewById(R.id.btnIncome);
         btnExpense = findViewById(R.id.btnExpense);
-//        logoutButton = findViewById(R.id.logoutButton);
         btnHistory = findViewById(R.id.btnHistory);
         btnVoice = findViewById(R.id.btnVoice);
 
@@ -53,38 +61,23 @@ public class MainActivity extends AppCompatActivity {
         );
 
         btnVoice.setOnClickListener(v -> startVoiceInput());
-
-//        logoutButton.setOnClickListener(v -> {
-//            FirebaseAuth.getInstance().signOut();
-//
-//            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-//            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//            startActivity(intent);
-//            finish();
-//        });
-
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
 
         bottomNav.setOnItemSelectedListener(item -> {
 
-            if (item.getItemId() == R.id.nav_home) {
-                return true;
-            }
+            if (item.getItemId() == R.id.nav_home) return true;
 
             if (item.getItemId() == R.id.nav_history) {
-
                 startActivity(new Intent(MainActivity.this, HistoryActivity.class));
                 return true;
             }
 
             if (item.getItemId() == R.id.nav_analyze) {
-
                 startActivity(new Intent(MainActivity.this, AnalyzeActivity.class));
                 return true;
             }
 
             if (item.getItemId() == R.id.nav_profile) {
-
                 startActivity(new Intent(MainActivity.this, ProfileActivity.class));
                 return true;
             }
@@ -243,7 +236,6 @@ public class MainActivity extends AppCompatActivity {
 
         double amount = 0;
 
-        // amount գտնել
         for (String word : text.split(" ")) {
 
             word = word.replace(",", "").replace(".", "");
@@ -261,7 +253,6 @@ public class MainActivity extends AppCompatActivity {
         if (text.contains("income") || text.contains("salary")) {
             type = "INCOME";
         }
-
 
         String category = "Other";
 
@@ -285,7 +276,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // 1ին տառը մեծատառ
         category = category.substring(0,1).toUpperCase() + category.substring(1);
 
         double finalAmount = amount;
