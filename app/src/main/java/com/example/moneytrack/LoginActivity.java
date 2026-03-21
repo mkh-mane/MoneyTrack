@@ -12,13 +12,14 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity {
 
     private EditText emailEditText, passwordEditText;
     private Button loginButton;
     private FirebaseAuth mAuth;
+
+    private static final String PREF_NAME = "MoneyTrackPrefs";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,30 +64,8 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(v -> loginUser());
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
-        if (user != null) {
-
-            SharedPreferences prefs =
-                    getSharedPreferences("MoneyTrackPrefs", MODE_PRIVATE);
-
-            String savedPin = prefs.getString("user_pin", null);
-
-            if (savedPin == null) {
-                // PIN չկա → Create
-                startActivity(new Intent(this, CreatePinActivity.class));
-            } else {
-                // PIN կա → Verify
-                startActivity(new Intent(this, VerifyPinActivity.class));
-            }
-
-            finish();
-        }
-    }
+    // ❌ Հեռացնում ենք onStart ավտոմատ redirect-ը
+    // դա խառնվում էր flow-ի հետ
 
     private void loginUser() {
 
@@ -108,16 +87,27 @@ public class LoginActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
 
                         SharedPreferences prefs =
-                                getSharedPreferences("MoneyTrackPrefs", MODE_PRIVATE);
+                                getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+
+                        // ✅ հիշում ենք user-ին
+                        prefs.edit()
+                                .putBoolean("REMEMBER", true)
+                                .putBoolean("PIN_VERIFIED", false) // նորից PIN պետք է
+                                .apply();
 
                         String savedPin = prefs.getString("user_pin", null);
 
+                        Intent intent;
+
                         if (savedPin == null) {
-                            startActivity(new Intent(this, CreatePinActivity.class));
+                            intent = new Intent(this, CreatePinActivity.class);
                         } else {
-                            startActivity(new Intent(this, VerifyPinActivity.class));
+                            intent = new Intent(this, VerifyPinActivity.class);
                         }
 
+                        // 🔥 շատ կարևոր
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
                         finish();
 
                     } else {

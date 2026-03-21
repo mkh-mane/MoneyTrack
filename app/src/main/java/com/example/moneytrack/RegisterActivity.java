@@ -33,7 +33,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        prefs = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+        prefs = getSharedPreferences("MoneyTrackPrefs", MODE_PRIVATE);
         email = findViewById(R.id.registerEmail);
         password = findViewById(R.id.registerPassword);
         confirmPassword = findViewById(R.id.confirmPassword);

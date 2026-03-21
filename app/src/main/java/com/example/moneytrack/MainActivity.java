@@ -30,16 +30,35 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // 🔥 FULL START LOGIC
         SharedPreferences prefs = getSharedPreferences("MoneyTrackPrefs", MODE_PRIVATE);
+
         boolean remember = prefs.getBoolean("REMEMBER", false);
+        String savedPin = prefs.getString("user_pin", null);
         boolean pinVerified = prefs.getBoolean("PIN_VERIFIED", false);
 
-        if (remember && !pinVerified) {
+        // ❌ Եթե remember չկա → Login
+        if (!remember) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
+        // 🟡 Եթե PIN չկա → Create PIN
+        if (savedPin == null) {
+            startActivity(new Intent(this, CreatePinActivity.class));
+            finish();
+            return;
+        }
+
+        // 🔵 Եթե PIN կա, բայց verify չի արել → Enter PIN
+        if (!pinVerified) {
             startActivity(new Intent(this, VerifyPinActivity.class));
             finish();
             return;
         }
 
+        // ✅ Եթե ամեն ինչ OK → բացում ենք Main UI
         setContentView(R.layout.activity_main);
 
         tvBalance = findViewById(R.id.tvBalance);
@@ -61,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
         );
 
         btnVoice.setOnClickListener(v -> startVoiceInput());
+
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
 
         bottomNav.setOnItemSelectedListener(item -> {
@@ -85,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
     }
+
 
     private void showAmountDialog(String type) {
 
@@ -297,5 +318,34 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(this::calculateAndUpdateBalance);
 
         }).start();
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        SharedPreferences prefs = getSharedPreferences("MoneyTrackPrefs", MODE_PRIVATE);
+
+        boolean remember = prefs.getBoolean("REMEMBER", false);
+        String savedPin = prefs.getString("user_pin", null);
+        boolean pinVerified = prefs.getBoolean("PIN_VERIFIED", false);
+
+        if (!remember) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
+        if (savedPin == null) {
+            startActivity(new Intent(this, CreatePinActivity.class));
+            finish();
+            return;
+        }
+
+        if (!pinVerified) {
+            startActivity(new Intent(this, VerifyPinActivity.class));
+            finish();
+        }
     }
 }
