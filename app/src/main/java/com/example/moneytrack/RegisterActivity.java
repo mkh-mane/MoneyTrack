@@ -1,9 +1,11 @@
 package com.example.moneytrack;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -17,10 +19,12 @@ import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private EditText email, password;
+    private EditText email, password, confirmPassword;
     private Button registerButton;
+    private CheckBox rememberMe;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+    private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,9 +33,11 @@ public class RegisterActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-
+        prefs = getSharedPreferences("MoneyTrackPrefs", MODE_PRIVATE);
         email = findViewById(R.id.registerEmail);
         password = findViewById(R.id.registerPassword);
+        confirmPassword = findViewById(R.id.confirmPassword);
+        rememberMe = findViewById(R.id.rememberMe);
         registerButton = findViewById(R.id.registerButton);
 
         registerButton.setOnClickListener(v -> registerUser());
@@ -41,6 +47,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         String userEmail = email.getText().toString().trim();
         String userPassword = password.getText().toString().trim();
+        String confirmPass = confirmPassword.getText().toString().trim();
 
         if (TextUtils.isEmpty(userEmail)) {
             email.setError("Enter email");
@@ -52,6 +59,21 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
+        if (TextUtils.isEmpty(confirmPass)) {
+            confirmPassword.setError("Confirm your password");
+            return;
+        }
+
+        if (!userPassword.equals(confirmPass)) {
+            confirmPassword.setError("Passwords do not match");
+            return;
+        }
+
+        if (userPassword.length() < 6) {
+            password.setError("Password must be at least 6 characters");
+            return;
+        }
+
         mAuth.createUserWithEmailAndPassword(userEmail, userPassword)
                 .addOnCompleteListener(task -> {
 
@@ -59,7 +81,7 @@ public class RegisterActivity extends AppCompatActivity {
 
                         String userId = mAuth.getCurrentUser().getUid();
 
-                        // Ստեղծում ենք Firestore document
+                        // 🔹 Firestore
                         Map<String, Object> user = new HashMap<>();
                         user.put("email", userEmail);
                         user.put("balance", 0);
@@ -70,11 +92,16 @@ public class RegisterActivity extends AppCompatActivity {
                                 .set(user)
                                 .addOnSuccessListener(unused -> {
 
+                                    // ✅ Remember Me պահում
+                                    SharedPreferences.Editor editor = prefs.edit();
+                                    editor.putBoolean("REMEMBER", rememberMe.isChecked());
+                                    editor.apply();
+
                                     Toast.makeText(this,
                                             "Registration Successful!",
                                             Toast.LENGTH_SHORT).show();
 
-                                    // Գնում ենք Create PIN
+                                    // 👉 անցնում ենք PIN setup
                                     startActivity(new Intent(this, CreatePinActivity.class));
                                     finish();
 
