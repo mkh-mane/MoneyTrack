@@ -1,7 +1,21 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.MoneyTrack" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+
+    <style name="Base.Theme.MoneyTrack" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+
+        <item name="colorPrimary">#D0BCFF</item>
+        <item name="colorOnPrimary">#000000</item>
+
+        <item name="colorSecondary">#03DAC6</item>
+        <item name="colorOnSecondary">#000000</item>
+
+        <item name="android:colorBackground">#121212</item>
+        <item name="colorOnBackground">#FFFFFF</item>
+
+        <item name="colorSurface">#1E1E1E</item>
+        <item name="colorOnSurface">#FFFFFF</item>
+
     </style>
+
+    <style name="Theme.MoneyTrack" parent="Base.Theme.MoneyTrack" />
+
 </resources>

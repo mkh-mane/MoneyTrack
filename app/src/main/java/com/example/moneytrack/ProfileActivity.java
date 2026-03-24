@@ -1,51 +1,55 @@
 package com.example.moneytrack;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.TextView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class ProfileActivity extends AppCompatActivity {
+
+    TextView tvEmail;
+    Button btnLogout, btnChangePin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_profile);
-        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
 
-        bottomNav.setSelectedItemId(R.id.nav_profile);
+        tvEmail = findViewById(R.id.tvEmail);
+        btnLogout = findViewById(R.id.btnLogout);
+        btnChangePin = findViewById(R.id.btnChangePin);
 
-        bottomNav.setOnItemSelectedListener(item -> {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
-            if (item.getItemId() == R.id.nav_home) {
-                startActivity(new Intent(this, MainActivity.class));
-                return true;
-            }
+        if (user != null) {
+            tvEmail.setText(user.getEmail());
+        }
 
-            if (item.getItemId() == R.id.nav_history) {
-                startActivity(new Intent(this, HistoryActivity.class));
+        btnLogout.setOnClickListener(v -> logout());
 
-                return true;
-            }
-
-            if (item.getItemId() == R.id.nav_analyze) {
-                startActivity(new Intent(this, AnalyzeActivity.class));
-                return true;
-            }
-
-            if (item.getItemId() == R.id.nav_profile) {
-                return true;
-            }
-
-            return false;
+        btnChangePin.setOnClickListener(v -> {
+            startActivity(new Intent(this, CreatePinActivity.class));
         });
+    }
 
+    private void logout() {
+        FirebaseAuth.getInstance().signOut();
+
+        SharedPreferences prefs =
+                getSharedPreferences("MoneyTrackPrefs", MODE_PRIVATE);
+
+        prefs.edit().clear().apply();
+
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+        startActivity(intent);
+        finish();
     }
 }
